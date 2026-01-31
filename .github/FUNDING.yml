@@ -6,7 +6,8 @@ open_collective: # ywz9j4av-god8pg3k-bmeqmr35-nxklb0e7
 ko_fi: # Replace with a single Ko-fi username
 tidelift: # Replace with a single Tidelift platform-name/package-name e.g., npm/babel
 community_bridge: # Replace with a single Community Bridge project-name e.g., cloud-foundry
-liberapay: # Replace with a single Liberapay username
+liberapay: # <script src="https://liberapay.com/handyheathers/widgets/button.js"></script>
+<noscript><a href="https://liberapay.com/handyheathers/donate"><img alt="Donate using Liberapay" src="https://liberapay.com/assets/widgets/donate.svg"></a></noscript>
 issuehunt: # Replace with a single IssueHunt username
 lfx_crowdfunding: # https://openprofile.dev/profile/moody86
 polar: # Replace with a single Polar username
