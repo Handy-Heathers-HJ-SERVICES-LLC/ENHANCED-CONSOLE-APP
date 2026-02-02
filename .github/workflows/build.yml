@@ -1,0 +1,139 @@
+name: .NET Build and Test
+
+on:
+  push:
+    branches: [ master, main, develop ]
+  pull_request:
+    branches: [ master, main, develop ]
+  workflow_dispatch:
+
+env:
+  DOTNET_VERSION: '10.0.x'
+  CONFIGURATION: 'Release'
+
+jobs:
+  build:
+    name: Build on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+      fail-fast: false
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+    
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: ${{ env.DOTNET_VERSION }}
+    
+    - name: Display .NET version
+      run: dotnet --version
+    
+    - name: Restore dependencies
+      run: dotnet restore ConsoleApp1/ConsoleApp1.csproj
+    
+    - name: Build project
+      run: dotnet build ConsoleApp1/ConsoleApp1.csproj --configuration ${{ env.CONFIGURATION }} --no-restore
+    
+    - name: Test smoke tests
+      shell: pwsh
+      run: |
+        Write-Host "Running smoke tests..."
+        
+        # Test version command
+        $output = dotnet run --project ConsoleApp1/ConsoleApp1.csproj --configuration ${{ env.CONFIGURATION }} --no-build -- version
+        if ($output -match "Enhanced Console App v1.0") {
+          Write-Host "? Version command successful"
+        } else {
+          Write-Error "? Version command failed"
+          exit 1
+        }
+        
+        # Test calc command
+        $output = dotnet run --project ConsoleApp1/ConsoleApp1.csproj --configuration ${{ env.CONFIGURATION }} --no-build -- calc 2 + 2
+        if ($output -match "Result: 2 \+ 2 = 4") {
+          Write-Host "? Calculation command successful"
+        } else {
+          Write-Error "? Calculation command failed"
+          exit 1
+        }
+        
+        # Test upper command
+        $output = dotnet run --project ConsoleApp1/ConsoleApp1.csproj --configuration ${{ env.CONFIGURATION }} --no-build -- upper hello
+        if ($output -match "Uppercase: HELLO") {
+          Write-Host "? Upper command successful"
+        } else {
+          Write-Error "? Upper command failed"
+          exit 1
+        }
+        
+        Write-Host "All smoke tests passed!"
+    
+    - name: Upload build artifacts
+      if: matrix.os == 'ubuntu-latest'
+      uses: actions/upload-artifact@v4
+      with:
+        name: enhanced-console-app-${{ env.CONFIGURATION }}
+        path: ConsoleApp1/bin/${{ env.CONFIGURATION }}/net10.0/
+        retention-days: 7
+
+  code-quality:
+    name: Code Quality Checks
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: ${{ env.DOTNET_VERSION }}
+    
+    - name: Restore dependencies
+      run: dotnet restore ConsoleApp1/ConsoleApp1.csproj
+    
+    - name: Build with warnings as errors
+      run: dotnet build ConsoleApp1/ConsoleApp1.csproj --configuration ${{ env.CONFIGURATION }} --no-restore /warnaserror
+    
+    - name: Check for compilation warnings
+      run: |
+        echo "Checking for compilation warnings..."
+        WARNINGS=$(dotnet build ConsoleApp1/ConsoleApp1.csproj --configuration ${{ env.CONFIGURATION }} --no-restore 2>&1 | grep -i "warning" || true)
+        if [ -n "$WARNINGS" ]; then
+          echo "? Compilation warnings found:"
+          echo "$WARNINGS"
+          exit 1
+        else
+          echo "? No compilation warnings found"
+        fi
+
+  summary:
+    name: Build Summary
+    runs-on: ubuntu-latest
+    needs: [build, code-quality]
+    if: always()
+    
+    steps:
+    - name: Check build status
+      run: |
+        echo "## Build Summary ??" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "- **Build Status**: ${{ needs.build.result }}" >> $GITHUB_STEP_SUMMARY
+        echo "- **Code Quality**: ${{ needs.code-quality.result }}" >> $GITHUB_STEP_SUMMARY
+        echo "- **Workflow**: ${{ github.workflow }}" >> $GITHUB_STEP_SUMMARY
+        echo "- **Triggered by**: ${{ github.event_name }}" >> $GITHUB_STEP_SUMMARY
+        echo "- **Commit**: ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        
+        if [ "${{ needs.build.result }}" == "success" ] && [ "${{ needs.code-quality.result }}" == "success" ]; then
+          echo "? **All checks passed!**" >> $GITHUB_STEP_SUMMARY
+        else
+          echo "? **Some checks failed. Please review the logs.**" >> $GITHUB_STEP_SUMMARY
+        fi
