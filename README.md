@@ -1,5 +1,10 @@
 # Enhanced Console App
 
+[![Build Status](https://github.com/Handy-Heathers-HJ-SERVICES-LLC/ENHANCED-CONSOLE-APP/actions/workflows/build.yml/badge.svg)](https://github.com/Handy-Heathers-HJ-SERVICES-LLC/ENHANCED-CONSOLE-APP/actions/workflows/build.yml)
+[![.NET](https://img.shields.io/badge/.NET-10-blue)](https://dotnet.microsoft.com/)
+[![C#](https://img.shields.io/badge/C%23-14.0-blue)](https://docs.microsoft.com/en-us/dotnet/csharp/)
+[![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+
 A feature-rich, versatile console application built with C# 14.0 and .NET 10. This app provides both interactive menu-driven and command-line interfaces for text manipulation, calculations, file operations, and various utilities.
 
 ## ?? Features
