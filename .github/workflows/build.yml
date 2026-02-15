@@ -105,15 +105,14 @@ jobs:
     - name: Check for compilation warnings
       run: |
         echo "Checking for compilation warnings..."
-        WARNINGS=$(dotnet build ConsoleApp1/ConsoleApp1.csproj --configuration ${{ env.CONFIGURATION }} --no-restore 2>&1 | grep -i "warning" || true)
-        if [ -n "$WARNINGS" ]; then
-          echo "? Compilation warnings found:"
-          echo "$WARNINGS"
-          exit 1
-        else
-          echo "? No compilation warnings found"
-        fi
-
+      WARNINGS=$(dotnet build ConsoleApp1/ConsoleApp1.csproj --configuration Release --no-restore 2>&1 | grep -i "warning" || true)
+if [ -n "$WARNINGS" ]; then
+  echo "? Compilation warnings found:"
+  echo "$WARNINGS"
+  exit 1
+else
+  echo "? No compilation warnings found"
+fi
   summary:
     name: Build Summary
     runs-on: ubuntu-latest
